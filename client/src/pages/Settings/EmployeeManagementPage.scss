@@ -1,0 +1,95 @@
+$primary-color: #1890ff;
+$background-color: #fff;
+$text-color: #1f1f1f;
+$info-bg-color: #f0f7ff;
+$danger-color: #ff4d4f;
+$shadow-color: rgba(0, 0, 0, 0.1);
+
+.employee-management-page {
+  .employee-management-container {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 20px;
+
+    @media (min-width: 992px) {
+      flex-direction: row;
+      justify-content: space-between;
+    }
+
+    .employee-management-info {
+      flex: 1;
+      max-width: 100%;
+
+      article {
+        background-color: $info-bg-color;
+        padding: 32px;
+        border-radius: 8px;
+        border-left: 4px solid $primary-color;
+        box-shadow: 0 2px 8px $shadow-color;
+        overflow: auto;
+        max-height: none;
+        min-height: 300px;
+
+        h3 {
+          font-size: 18px;
+          font-weight: 600;
+          color: $primary-color;
+          margin-bottom: 16px;
+        }
+
+        h4 {
+          font-size: 16px;
+          font-weight: 500;
+          margin-top: 16px;
+          margin-bottom: 8px;
+          color: $primary-color;
+        }
+
+        p {
+          margin-bottom: 16px;
+          line-height: 1.6;
+          color: $text-color;
+        }
+
+        ul {
+          margin-bottom: 16px;
+          padding-left: 20px;
+
+          li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+          }
+        }
+
+        strong {
+          color: $danger-color;
+        }
+      }
+
+      @media (min-width: 992px) {
+        flex: 0 0 32%;
+        max-width: 32%;
+      }
+    }
+
+    .employee-management-form {
+      flex: 2;
+      max-width: 100%;
+
+      @media (min-width: 992px) {
+        flex: 0 0 65%;
+        max-width: 65%;
+      }
+    }
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 24px;
+    margin-top: -32px;
+    border-bottom: 2px solid $primary-color;
+    padding-bottom: 12px;
+  }
+}

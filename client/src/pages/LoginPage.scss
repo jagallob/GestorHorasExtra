@@ -1,0 +1,154 @@
+.login-page {
+  height: 130vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-image: url("../assets/images/BackgroundAlt.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-color: #0c66e1;
+  padding: 20px;
+}
+
+.login-card {
+  width: 400px;
+  max-width: 100%;
+  background-color: #0c66e1;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  backdrop-filter: blur(8px);
+  animation: fadeIn 0.5s ease;
+  margin-top: -250px;
+}
+
+.login-title {
+  color: white;
+  background-color: #0c66e1;
+  text-align: center;
+  margin: 0;
+  padding: 20px 0;
+  font-weight: 600;
+  font-size: 28px;
+}
+
+.login-form-container {
+  padding: 30px;
+  background-color: #ffffff;
+  border-radius: 0 0 16px 16px;
+
+  h2 {
+    margin-top: -40px;
+    margin-bottom: -10px;
+  }
+}
+
+.login-logo {
+  width: 180px;
+  height: auto;
+  display: block;
+}
+
+.login-form {
+  .form-field {
+    background-color: #0c66e1;
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 16px;
+
+    .ant-form-item {
+      margin-bottom: 15px;
+    }
+
+    .ant-form-item-label > label {
+      color: white;
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+
+    .ant-input-password {
+      height: -40px;
+      border-radius: 6px;
+      border: 2px solid transparent;
+
+      .ant-input {
+        height: 38px;
+        padding-left: 12px;
+        text-align: left;
+      }
+
+      .ant-input-suffix {
+        margin-right: 8px;
+      }
+
+      input.ant-input {
+        letter-spacing: 2px;
+        font-size: 16px;
+      }
+
+      &:focus,
+      &:hover {
+        border-color: #0c66e1;
+        box-shadow: 0 0 0 2px rgba(12, 102, 225, 0.2);
+      }
+    }
+
+    .ant-input-password .ant-input {
+      height: 28px;
+    }
+  }
+
+  .login-button-container {
+    margin-top: 24px;
+
+    .login-button {
+      height: 48px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 8px;
+      background-color: #0c66e1;
+      color: white;
+      border: none;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+
+      &:hover,
+      &:focus {
+        background-color: #b8d6ff;
+        color: #0c5bc9;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .login-card {
+    width: 100%;
+  }
+
+  .login-form-container {
+    padding: 20px;
+  }
+
+  .form-field {
+    padding: 15px;
+  }
+}

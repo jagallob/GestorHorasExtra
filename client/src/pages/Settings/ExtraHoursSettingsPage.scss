@@ -1,0 +1,122 @@
+$primary-color: #1890ff;
+$background-color: #fff;
+$text-color: #1f1f1f;
+$info-bg-color: #f0f7ff;
+$danger-color: #ff4d4f;
+$shadow-color: rgba(0, 0, 0, 0.1);
+
+.settingsMenu {
+  min-height: calc(100vh - 60px);
+  padding: 1rem;
+  background-size: cover;
+  background-position: center;
+
+  h2 {
+    font-size: 24px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 24px;
+    border-bottom: 2px solid $primary-color;
+    padding-bottom: 12px;
+  }
+}
+
+.page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+}
+
+.settings__container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+
+  @media (min-width: 992px) {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+}
+
+.settings__article {
+  flex: 1;
+  max-width: 100%;
+
+  background-color: $info-bg-color;
+  padding: 32px;
+  border-radius: 8px;
+  border-left: 4px solid $primary-color;
+  box-shadow: 0 2px 8px $shadow-color;
+  overflow: auto;
+  max-height: none;
+  min-height: 400px;
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: $primary-color;
+    margin-bottom: 16px;
+  }
+
+  article {
+    color: $text-color;
+    font-family: Arial, Helvetica, sans-serif;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+
+  ol {
+    margin-left: 20px;
+    margin-bottom: 16px;
+
+    li {
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+  }
+
+  strong {
+    color: $text-color;
+    font-family: Arial, Helvetica, sans-serif;
+    font-weight: 600;
+  }
+
+  @media (min-width: 992px) {
+    flex: 0 0 32%;
+    max-width: 32%;
+  }
+}
+
+.settings__form {
+  flex: 2;
+  max-width: 100%;
+  padding: 1rem;
+  background-color: $background-color;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px $shadow-color;
+  color: $text-color;
+
+  div {
+    margin-bottom: 0.5rem;
+  }
+
+  button {
+    background-color: $primary-color;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: $primary-color, 10%;
+    }
+  }
+
+  @media (min-width: 992px) {
+    flex: 0 0 65%;
+    max-width: 65%;
+  }
+}

@@ -8,8 +8,8 @@ import {
 import { FormExtraHour } from "./FormExtraHour";
 import { useAuth } from "../../utils/useAuth";
 import { useConfig } from "../../utils/useConfig";
-import { calculateExtraHour } from "../../services/calculateExtraHour";
-import { addExtraHour } from "../../services/addExtraHour";
+import { calculateExtraHour } from "../../services/extraHourService";
+import { addExtraHour } from "../../services/extraHourService";
 import PropTypes from "prop-types";
 
 // Mock de los hooks y servicios

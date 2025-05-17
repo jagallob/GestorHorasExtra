@@ -1,0 +1,34 @@
+﻿version: '3.8'
+
+services:
+  backend:
+    image: extrahoursapi:1.0.0  # Nombre de tu imagen Docker
+    env_file: .env.prod  # Punto clave: Archivo externo de variables
+    ports:
+      - "80:8080"  # Mapea puerto 80 host → 8080 contenedor (el EXPOSE del Dockerfile)
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+    depends_on:
+      db:
+        condition: service_healthy  # Espera a que PostgreSQL esté listo
+    secrets:
+      - db_password
+      - smtp_password
+
+  db:
+    image: postgres:14  # Versión específica de PostgreSQL
+    env_file: .env.prod  # Comparte variables con el backend
+    volumes:
+      - pg_data:/var/lib/postgresql/data  # Persistencia de datos
+    # Health check implícito (Postgres image ya incluye uno)
+    secrets:
+      - db_password
+
+volumes:
+  pg_data:  # Declaración del volumen persistente
+
+secrets:
+  db_password:
+    file: C:/Users/jaial/GestorHorasExtra/ExtraHours.API/secrets/db_password
+  smtp_password:
+    file: C:/Users/jaial/GestorHorasExtra/ExtraHours.API/secrets/smtp_password

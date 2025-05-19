@@ -79,7 +79,8 @@ builder.Services.AddCors(options =>
     {
         policy.WithOrigins(
             "http://localhost:5173", // URL del frontend
-            "https://localhost:7086" // URL del backend
+            "https://localhost:7086", // URL del backend
+            "https://lemon-coast-08a45280f.6.azurestaticapps.net" // Frontend en Azure
             )
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -147,8 +148,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseAuthentication();
+app.UseRouting();
 app.UseCors(MyAllowSpecificOrigins);
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers(); // Mapear los controladores
 

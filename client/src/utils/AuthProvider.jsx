@@ -1,6 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import { API_CONFIG } from "../environments/api.config";
 import { jwtDecode } from "jwt-decode";
 import { AuthContext } from "./AuthContext"; // Importar el contexto desde su archivo
 
@@ -34,25 +35,54 @@ export const AuthProvider = ({ children }) => {
     return null;
   });
 
-  const login = ({ token, role }) => {
-    const formattedRole = role.replace(/[[\]]/g, "");
-    const decodedToken = jwtDecode(token); // Decodificar el token
+  const login = async ({ email, password }) => {
+    try {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: "include", // Importante para cookies
+      });
 
-    // Almacenar el rol y el ID del usuario en localStorage
-    localStorage.setItem("token", token);
-    localStorage.setItem("role", formattedRole);
-    localStorage.setItem("id", decodedToken.id);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Login failed");
+      }
 
-    if (decodedToken.unique_name) {
-      localStorage.setItem("unique_name", decodedToken.unique_name);
+      const data = await response.json();
+
+      // Aquí debes procesar los datos de la respuesta
+      if (data.token) {
+        const decodedToken = jwtDecode(data.token);
+        const formattedRole = decodedToken.role.replace(/[[\]]/g, "");
+
+        // Almacenar en localStorage
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("role", formattedRole);
+        localStorage.setItem("id", decodedToken.id);
+
+        if (decodedToken.unique_name) {
+          localStorage.setItem("unique_name", decodedToken.unique_name);
+        }
+
+        // Actualizar el estado de autenticación
+        setAuth({
+          token: data.token,
+          role: formattedRole,
+          uniqueName: decodedToken.unique_name,
+        });
+
+        // Redirigir al usuario
+        navigate("/menu");
+      } else {
+        throw new Error("No token received in response");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      throw error;
     }
-
-    setAuth({
-      token,
-      role: formattedRole,
-      uniqueName: decodedToken.unique_name,
-    });
-    navigate("/menu");
   };
 
   const logout = () => {

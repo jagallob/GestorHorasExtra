@@ -147,9 +147,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
-app.UseRouting();
 app.UseCors(MyAllowSpecificOrigins);
+app.UseRouting();
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers(); // Mapear los controladores

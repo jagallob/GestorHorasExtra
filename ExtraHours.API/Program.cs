@@ -13,20 +13,16 @@ using ExtraHours.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Configurar DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-// Registrar repositorios
+// Registrar repositorios y servicios
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IEmployeeRepository, EmployeeRepository>();
 builder.Services.AddScoped<IExtraHourRepository, ExtraHourRepository>();
 builder.Services.AddScoped<IManagerRepository, ManagerRepository>();
 builder.Services.AddScoped<IExtraHoursConfigRepository, ExtraHoursConfigRepository>();
-
-// Registrar servicios
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IEmployeeService, EmployeeService>();
 builder.Services.AddScoped<IExtraHourService, ExtraHourService>();
@@ -34,44 +30,36 @@ builder.Services.AddSingleton<IJWTUtils, JWTUtils>();
 builder.Services.AddScoped<IExtraHoursConfigService, ExtraHoursConfigService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IExtraHourCalculationService, ExtraHourCalculationService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
-// Agregar controladores
+// Configurar controladores
 builder.Services.AddControllers()
-.AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-});
+    .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
-
-// Configurar autenticacion con JWT
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
+// Configurar autenticación JWT
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
-        ValidateLifetime = true,
-        ValidateIssuerSigningKey = true,
-        ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
-        ValidAudience = builder.Configuration["JwtSettings:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
-    };
-    options.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = context =>
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            // Permite obtener el token de cookies o headers
-            context.Token = context.Request.Cookies["access_token"] ??
-                          context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            return Task.CompletedTask;
-        }
-    };
-});
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
+        };
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                context.Token = context.Request.Cookies["access_token"] ??
+                               context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
+                return Task.CompletedTask;
+            }
+        };
+    });
 
 builder.Services.AddAuthorization(options =>
 {
@@ -80,27 +68,18 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("SuperusuarioOnly", policy => policy.RequireRole("superusuario"));
 });
 
-
-// Agregar CORS para permitir solicitudes del frontend
-var corsPolicyName = "AllowSpecificOrigins";
+// Configurar CORS
+var corsPolicyName = "AllowFrontend";
 builder.Services.AddCors(options =>
 {
     options.AddPolicy(corsPolicyName, policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "https://localhost:7086",
-                "https://lemon-coast-08a45280f.6.azurestaticapps.net",
-                "https://lemon-coast-08a45280f6.azurestaticapps.net" // Sin punto
-            )
-            .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+        policy.WithOrigins("https://lemon-coast-08a45280f.6.azurestaticapps.net")
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
-
-//Configurar EmailService
-builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Configurar Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -115,13 +94,12 @@ builder.Services.AddSwaggerGen(options =>
         {
             Name = "Jaime Gallo",
             Email = "jagallob@eafit.edu.co",
-
         }
     });
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+        Description = "JWT Authorization header using the Bearer scheme.",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -146,7 +124,7 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Orden EXACTO de middlewares:
+// Configurar el pipeline de middlewares
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -154,16 +132,16 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
-app.UseCors(corsPolicyName); 
-app.UseHttpsRedirection();
-app.UseAuthentication();
-app.UseAuthorization();
 
-// Ppara manejar OPTIONS explícitamente
+// Middleware personalizado para OPTIONS
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
     {
+        context.Response.Headers.Add("Access-Control-Allow-Origin", "https://lemon-coast-08a45280f.6.azurestaticapps.net");
+        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
         context.Response.StatusCode = 204;
         await context.Response.CompleteAsync();
         return;
@@ -171,5 +149,11 @@ app.Use(async (context, next) =>
     await next();
 });
 
+app.UseCors(corsPolicyName);
+app.UseHttpsRedirection();
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();

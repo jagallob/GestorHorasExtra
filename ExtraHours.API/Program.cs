@@ -82,19 +82,20 @@ builder.Services.AddAuthorization(options =>
 
 
 // Agregar CORS para permitir solicitudes del frontend
-var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+var corsPolicyName = "AllowSpecificOrigins";
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(MyAllowSpecificOrigins, policy =>
+    options.AddPolicy(corsPolicyName, policy =>
     {
         policy.WithOrigins(
-            "http://localhost:5173", // URL del frontend
-            "https://localhost:7086", // URL del backend
-            "https://lemon-coast-08a45280f.6.azurestaticapps.net" // Frontend en Azure
+                "http://localhost:5173",
+                "https://localhost:7086",
+                "https://lemon-coast-08a45280f.6.azurestaticapps.net",
+                "https://lemon-coast-08a45280f6.azurestaticapps.net" // Sin punto
             )
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+            .AllowCredentials();
     });
 });
 
@@ -145,23 +146,30 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-
-// Configurar middleware
+// Orden EXACTO de middlewares:
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger(); // Habilitar Swagger
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "ExtraHours API v1");
-        options.RoutePrefix = "swagger"; // Ruta base para la interfaz de Swagger
-    });
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseRouting();
-app.UseCors(MyAllowSpecificOrigins);
+app.UseCors(corsPolicyName); 
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers(); // Mapear los controladores
 
+// Ppara manejar OPTIONS explícitamente
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 204;
+        await context.Response.CompleteAsync();
+        return;
+    }
+    await next();
+});
+
+app.MapControllers();
 app.Run();

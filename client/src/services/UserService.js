@@ -5,6 +5,8 @@ export const UserService = {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
         method: "POST",
+        mode: "cors",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

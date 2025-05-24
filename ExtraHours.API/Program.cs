@@ -13,11 +13,6 @@ using ExtraHours.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://*:8080");
-builder.Services.Configure<ForwardedHeadersOptions>(options =>
-{
-    options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.All;
-});
 
 // Configurar DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -75,12 +70,14 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Configurar CORS
-var corsPolicyName = "AllowFrontend";
+var frontendUrl = builder.Configuration["Frontend:Url"]
+    ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy(corsPolicyName, policy =>
+    options.AddPolicy("StrictCors", policy =>
     {
-        policy.WithOrigins("https://lemon-coast-08a45280f.6.azurestaticapps.net")
+        policy.WithOrigins(frontendUrl)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -139,27 +136,20 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-// Middleware personalizado para OPTIONS
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == "OPTIONS")
     {
-        context.Response.Headers.Add("Access-Control-Allow-Origin", "https://lemon-coast-08a45280f.6.azurestaticapps.net");
-        context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        context.Response.Headers.Add("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        context.Response.Headers.Add("Access-Control-Allow-Credentials", "true");
+        context.Response.Headers.Add("Access-Control-Allow-Origin", frontendUrl);
         context.Response.StatusCode = 204;
-        await context.Response.CompleteAsync();
         return;
     }
     await next();
 });
 
-app.UseCors(corsPolicyName);
-app.UseHttpsRedirection();
+app.UseCors("StrictCors");
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
 app.Run();

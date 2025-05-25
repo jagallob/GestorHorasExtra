@@ -13,7 +13,6 @@ using ExtraHours.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
 // Configurar DbContext
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -37,7 +36,24 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
-// Configurar autenticación JWT
+// Configurar CORS
+var frontendUrl = builder.Configuration["Frontend:Url"]
+    ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("ProductionCors", policy =>
+    {
+        policy.WithOrigins(frontendUrl)
+              .AllowAnyHeader()
+              .AllowAnyMethod()
+              .AllowCredentials()
+              .SetIsOriginAllowed(origin => true) // Para desarrollo
+              .WithExposedHeaders("Authorization", "Content-Length", "X-Requested-With");
+    });
+});
+
+// Configurar autenticaciÃ³n JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -67,21 +83,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("ManagerOnly", policy => policy.RequireRole("manager"));
     options.AddPolicy("EmpleadoOnly", policy => policy.RequireRole("empleado"));
     options.AddPolicy("SuperusuarioOnly", policy => policy.RequireRole("superusuario"));
-});
-
-// Configurar CORS
-var frontendUrl = builder.Configuration["Frontend:Url"]
-    ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("StrictCors", policy =>
-    {
-        policy.WithOrigins(frontendUrl)
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
-    });
 });
 
 // Configurar Swagger
@@ -127,27 +128,15 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// Configurar el pipeline de middlewares
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+app.UseCors("ProductionCors");
+
 app.UseRouting();
-
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == "OPTIONS")
-    {
-        context.Response.Headers.Add("Access-Control-Allow-Origin", frontendUrl);
-        context.Response.StatusCode = 204;
-        return;
-    }
-    await next();
-});
-
-app.UseCors("StrictCors");
 app.UseAuthentication();
 app.UseAuthorization();
 

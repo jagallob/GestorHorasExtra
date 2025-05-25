@@ -37,19 +37,28 @@ builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 // Configurar CORS
-var frontendUrl = builder.Configuration["Frontend:Url"]
-    ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
+// var frontendUrl = builder.Configuration["Frontend:Url"]
+//     ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
 
+// builder.Services.AddCors(options =>
+// {
+//     options.AddPolicy("ProductionCors", policy =>
+//     {
+//         policy.WithOrigins(frontendUrl)
+//               .AllowAnyHeader()
+//               .AllowAnyMethod()
+//               .AllowCredentials()
+//               .SetIsOriginAllowed(origin => true) // Para desarrollo
+//               .WithExposedHeaders("Authorization", "Content-Length", "X-Requested-With");
+//     });
+// });
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("ProductionCors", policy =>
     {
-        policy.WithOrigins(frontendUrl)
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowed(origin => true) // Para desarrollo
-              .WithExposedHeaders("Authorization", "Content-Length", "X-Requested-With");
+              .AllowAnyMethod();
     });
 });
 

@@ -1,30 +1,66 @@
 import { API_CONFIG } from "../environments/api.config";
 
+// Configuración común para fetch
+const fetchConfig = {
+  baseConfig: {
+    mode: "cors",
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest", // Necesario para algunos servidores CORS
+    },
+  },
+  getAuthHeader: () => ({
+    Authorization: `Bearer ${localStorage.getItem("token")}`,
+  }),
+};
+
+// Manejo centralizado de errores
+const handleResponse = async (response) => {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    const error = new Error(
+      errorData.message || `Error ${response.status}: ${response.statusText}`
+    );
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
+  }
+  return response.json();
+};
+
 export const UserService = {
   login: async (email, password) => {
     try {
       const response = await fetch(`${API_CONFIG.BASE_URL}/auth/login`, {
+        ...fetchConfig.baseConfig,
         method: "POST",
-        mode: "cors",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
         body: JSON.stringify({ email, password }),
+        // Headers específicos para login
+        headers: {
+          ...fetchConfig.baseConfig.headers,
+          Origin: window.location.origin, // Ayuda con CORS
+        },
       });
-      if (!response.ok) {
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
+
+      const data = await handleResponse(response);
+
+      // Almacenamiento seguro con verificación
+      if (data.token && data.id && data.role) {
+        localStorage.setItem("token", data.token);
+        localStorage.setItem("id", data.id);
+        localStorage.setItem("role", data.role);
+      } else {
+        throw new Error("Respuesta de login incompleta");
       }
-
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("id", data.id);
-      localStorage.setItem("role", data.role);
 
       return data;
     } catch (error) {
-      console.error("Login error:", error);
+      console.error("Login error details:", {
+        message: error.message,
+        status: error.status,
+        data: error.data,
+      });
       throw error;
     }
   },
@@ -34,24 +70,23 @@ export const UserService = {
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/auth/change-password`,
         {
+          ...fetchConfig.baseConfig,
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            ...fetchConfig.baseConfig.headers,
+            ...fetchConfig.getAuthHeader(),
           },
           body: JSON.stringify({ currentPassword, newPassword }),
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Respuesta completa:", errorText);
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.text();
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Change password error:", error);
+      console.error("Change password error details:", {
+        message: error.message,
+        status: error.status,
+        data: error.data,
+      });
       throw error;
     }
   },
@@ -61,24 +96,19 @@ export const UserService = {
       const response = await fetch(
         `${API_CONFIG.BASE_URL}/auth/change-password-admin`,
         {
+          ...fetchConfig.baseConfig,
           method: "PUT",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            ...fetchConfig.baseConfig.headers,
+            ...fetchConfig.getAuthHeader(),
           },
           body: JSON.stringify({ id, newPassword }),
         }
       );
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Respuesta completa:", errorText);
-        throw new Error(`Error ${response.status}: ${response.statusText}`);
-      }
-
-      return await response.text();
+      return await handleResponse(response);
     } catch (error) {
-      console.error("Change password admin error:", error);
+      console.error("Change password admin error details:", error);
       throw error;
     }
   },
@@ -87,19 +117,20 @@ export const UserService = {
 export const logout = async () => {
   try {
     const response = await fetch(`${API_CONFIG.BASE_URL}/auth/logout`, {
+      ...fetchConfig.baseConfig,
       method: "POST",
       headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
+        ...fetchConfig.baseConfig.headers,
+        ...fetchConfig.getAuthHeader(),
       },
     });
 
-    localStorage.removeItem("token");
-    localStorage.removeItem("id");
-    localStorage.removeItem("role");
+    // Limpieza segura
+    ["token", "id", "role"].forEach((item) => localStorage.removeItem(item));
 
     return response.ok;
   } catch (error) {
-    console.error("Logout error:", error);
+    console.error("Logout error details:", error);
     throw error;
   }
 };

@@ -37,17 +37,23 @@ builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = null);
 
 // Configurar CORS
-var frontendUrl = builder.Configuration["FrontendUrl"]
-    ?? "https://lemon-coast-08a45280f.6.azurestaticapps.net";
+var corsPolicy = "ProductionCors";
+var allowedOrigins = builder.Configuration.GetValue<string>("AllowedOrigins")?
+    .Split(';', StringSplitOptions.RemoveEmptyEntries)
+    ?? new[] { "https://lemon-coast-08a45280f.6.azurestaticapps.net" };
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("ProductionCors", policy =>
+    options.AddPolicy(corsPolicy, policy =>
     {
-        policy.WithOrigins(frontendUrl)
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials();
+              .AllowCredentials()
+              .SetIsOriginAllowedToAllowWildcardSubdomains();
+
+        // Específico para Azure y problemas de preflight
+        policy.SetPreflightMaxAge(TimeSpan.FromSeconds(86400));
     });
 });
 
@@ -140,7 +146,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-app.UseCors("ProductionCors");
+app.UseCors(corsPolicy);
 
 app.UseAuthentication();
 app.UseAuthorization();

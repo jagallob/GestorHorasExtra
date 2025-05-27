@@ -47,9 +47,7 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(frontendUrl)
               .AllowAnyHeader()
               .AllowAnyMethod()
-              .AllowCredentials()
-              .SetIsOriginAllowed(origin => true) // Para desarrollo
-              .WithExposedHeaders("Authorization", "Content-Length", "X-Requested-With");
+              .AllowCredentials();
     });
 });
 
@@ -140,9 +138,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseRouting();
+
 app.UseCors("ProductionCors");
 
-app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
